@@ -379,10 +379,11 @@ void renderBatteryStatus( ) {
   
   display.setFont(&JosefinSans_VariableFont_wght7pt7b);
   display.setTextColor(EPD_DARK);
-  display.setCursor(245,10);
   if( batPercentage >= 100 ) {
+    display.setCursor(245,10);
     display.print( "100%" );
   } else {
+    display.setCursor(249,10);
     display.print( batPercentage, 0 );
     display.println( "%" );
   }
