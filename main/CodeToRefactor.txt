@@ -1,0 +1,142 @@
+///// FROM LOOP FUNCTION
+  //getJoystickPosition();
+
+  // Check if setup has been completed and run through to the life total state
+  if( digitalRead( Button1 ) == HIGH && !setupComplete ) {
+    setupComplete = true;
+    //gameType = gameTypes.Draft; // TODO - Implement chosen types on start rather than static
+    //lifeTotal = 20; // TOOD - Set correct lifetotal for chosen game type
+    Serial.print("Life Total: ");
+    //Serial.println(lifeTotal);
+    timeOfLastAction = timeSinceStartup;
+    //renderLife();
+  }
+
+  // If setup's compelete, then 
+  if( setupComplete ) {
+    if( digitalRead( Button1 ) == HIGH && digitalRead( Button2 ) == HIGH && digitalRead( Button3 ) == HIGH ) {
+      putToDeepSleep();
+    } else if( digitalRead( Button1 ) == HIGH && digitalRead( Button2 ) == HIGH ) { // Death
+      //renderDeath();
+      setupComplete = false; // Allow for reset
+      Serial.println("Death");
+      delay( 5000 ); // Protect the screen
+      timeOfLastAction = timeSinceStartup;
+    } else if( digitalRead( Button1 ) == HIGH ) { // Increase life total by 1 each time - TODO, allow multiple presses before screen re-render
+      //lifeTotal++;
+      Serial.print("Life Total: ");
+      //Serial.println(lifeTotal);
+      lifeTotalUpdate = true;
+      Serial.println("Increase Life");
+      timeOfLastAction = timeSinceStartup;
+    } else if( digitalRead( Button3 ) == HIGH ) { // Decrease life total by 1 each time - TODO, allow multiple presses before screen re-render
+      //lifeTotal--;
+      Serial.print("Life Total: ");
+      //Serial.println(lifeTotal);
+      Serial.println("Reduce Life");
+      lifeTotalUpdate = true;
+      timeOfLastAction = timeSinceStartup;
+    }
+
+    if( lifeTotalUpdate ) { // TODO
+      // Check there's been enough time since the last interaction
+      Serial.print( "Time since last action" );
+      Serial.println( timeSinceStartup - timeOfLastAction );
+      if( hasPastEndTime( timeOfLastAction, timeToWaitAfterLastAction ) ) {
+        lifeTotalUpdate = false;
+        //renderLife();
+        delay( 100 );
+        //Serial.print( "Sleep Status: " );
+        //Serial.println( putToLightSleep() );
+      }
+    }
+  }
+
+  // Send to deep sleep if no interaction for some time
+  if( hasPastEndTime( timeOfLastAction, timeToDeepSleep ) ) {
+    Serial.print( "No interaction for " );
+    Serial.print( timeToDeepSleep );
+    Serial.println( " milliseconds going to deep sleep." );
+    putToDeepSleep();
+  }
+
+
+
+
+
+
+bool hasPastEndTime( unsigned long startTime, unsigned long endTime ) {
+  if( timePassed() - startTime >= endTime ) {
+    return true;
+  }
+  return false;
+}
+
+unsigned long timePassed() {
+  return millis() - startupCompleteTime;
+}
+
+
+void renderGrid() {
+  // Render vertical lines every 20px
+  for( int x = 19; x < 296; x = x + 20 ) {
+    display.drawLine( x, 0, x, 128, EPD_LIGHT );
+  }
+
+  // Render horizontal lines every 20px // TODO
+
+  // Render centre of EPD screen
+  display.drawLine( 296/2, 0, 296/2, 128, EPD_DARK );
+  display.drawLine( 0, 128/2, 296, 128/2, EPD_DARK );
+}
+
+int putToLightSleep() {
+    Serial.println( "Enabling Light Sleep; " );
+    enableWakeSource( true );
+    hasBeenWoken = true; // Set to true as this will mean we've been worken up next time
+    delay( 50 );
+    return esp_light_sleep_start();
+}
+
+void putToDeepSleep() {
+  Serial.println( "Enabling Deep Sleep" );
+  enableWakeSource( false );
+  updatePowerLed( false );
+  hasBeenWoken = true; // Set to true as this will mean we've been worken up next time
+  delay( 50 );
+  esp_deep_sleep_start();
+}
+
+
+// Function to enable wakeup sources from light or deep sleep
+void enableWakeSource( bool lightSleep ) {
+  if( lightSleep ) {
+    // Disable deep sleep wakeup options
+
+    // Enable light sleep wakeup options
+    Serial.print("Enabling GPIO Wake GPIO 18, 14, 12: ");
+    Serial.print(gpio_wakeup_enable( GPIO_NUM_18, GPIO_INTR_HIGH_LEVEL )); // Button1
+    Serial.print( digitalRead( 18 ) );
+    Serial.print(", ");
+    Serial.print(gpio_wakeup_enable( GPIO_NUM_14, GPIO_INTR_HIGH_LEVEL )); // Button2
+    Serial.print( digitalRead( 14 ) );
+    Serial.print(", ");
+    Serial.print( gpio_wakeup_enable( GPIO_NUM_12, GPIO_INTR_HIGH_LEVEL ) ); // Button3
+    Serial.println( digitalRead( 12 ) );
+  
+    Serial.print("Enabling GPIO Wake: ");
+    Serial.println( esp_sleep_enable_gpio_wakeup() );
+  } else {
+    // Disable light sleep wakeup options
+    
+    // Enable deep sleep wakeup options
+    esp_sleep_enable_ext1_wakeup( POWER_BUTTON, ESP_EXT1_WAKEUP_ANY_HIGH );
+    
+  }
+}
+
+
+
+
+
+
