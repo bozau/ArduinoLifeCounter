@@ -43,12 +43,12 @@ void SplashScreenState::DoUpdate() {
 // Splash State DoRender Function
 void SplashScreenState::DoRender() {
     if( visualStateChanged ) {
-        ImageReturnCode stat; // Status from image-reading functions
+        //ImageReturnCode stat; // Status from image-reading functions
         // Render our splash screen
         ScreenManager::Instance()->ClearScreen();
 
             //stat = reader.drawBMP(START_SPLASH, ScreenManager::Instance()->GetScreen(), 0, 0);
-            reader.printStatus(stat); // How'd we do?  
+            //reader.printStatus(stat); // How'd we do?  
 
         ScreenManager::Instance()->GetScreen().setTextColor(EPD_WHITE);
         if( !WifiManager::Instance()->WifiEnabled() ) { // Don't render Wifi details if its turned off

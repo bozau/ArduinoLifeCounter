@@ -1,5 +1,29 @@
 #include "main.h"
 
+// Define overall application status items
+bool setupComplete = false;
+bool hasBeenWoken = false;
+bool powerLed = true;
+
+unsigned long startupCompleteTime = 0;
+unsigned long timeSinceStartup = 0;
+unsigned long timeOfLastAction = 0;
+unsigned long timeToDeepSleep = 10 * 60 * 1000; // Number of minutes till we should enter deep sleep (mins, seconds, milliseconds)
+unsigned long timeToWaitAfterLastAction = 1.5 * 1000;
+
+// Create our list of joystick location ranges;
+std::vector< JoystickZone > JoystickZones;
+
+// Key configurations
+std::vector< Key* > Keys;
+
+// Battery Stats Struct
+BatteryStatus batteryStats;
+
+// SD Card
+SdFat SD;         // SD card filesystem
+Adafruit_ImageReader_EPD reader(SD); // Image-reader object, pass in SD filesys
+
 void setup() {
   // Turn on power led
   pinMode( POWER_LED, OUTPUT );

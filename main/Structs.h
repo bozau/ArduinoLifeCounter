@@ -20,7 +20,7 @@ struct JoystickLocation {
   int BottomLeft = 6;
   int TopRight = 7;
   int BottomRight = 8;
-} JoystickLocations;
+};
 
 // Joystick Zone Struct
 struct JoystickZone {
